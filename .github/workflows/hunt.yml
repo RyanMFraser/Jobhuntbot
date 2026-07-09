@@ -1,0 +1,45 @@
+name: Hunt jobs
+
+on:
+  schedule:
+    - cron: "*/20 * * * *"   # every 20 minutes (UTC; GitHub may delay under load)
+  workflow_dispatch:          # allow manual runs from the Actions tab
+
+# Serialize runs so state commits don't race.
+concurrency:
+  group: hunt
+  cancel-in-progress: false
+
+permissions:
+  contents: write             # lets the job commit state/seen.json back
+
+jobs:
+  hunt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Jobhuntbot
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python -m src.hunt
+
+      - name: Commit state
+        run: |
+          git config user.name  "jobhuntbot[bot]"
+          git config user.email "jobhuntbot@users.noreply.github.com"
+          git add state/seen.json
+          if git diff --cached --quiet; then
+            echo "No state changes to commit."
+          else
+            git commit -m "chore: update seen jobs [skip ci]"
+            git push
+          fi

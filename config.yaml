@@ -1,0 +1,69 @@
+# Jobhuntbot matching config. Edit freely and push — the next run picks it up.
+source_readme: https://raw.githubusercontent.com/zapplyjobs/New-Grad-Jobs-2027/main/README.md
+
+roles:
+  # A job's title must contain at least one `include` keyword (case-insensitive)...
+  include:
+    - data scientist
+    - data engineer
+    - machine learning
+    - ml engineer
+    - ai engineer
+    - applied scientist
+    - research scientist
+    - data analyst
+    - analytics
+    - "data platform"
+  # ...and must NOT contain any of these (weeds out senior/lead roles new grads can't take).
+  exclude:
+    - senior
+    - staff
+    - principal
+    - lead
+    - manager
+    - director
+    - "vp "
+    - "10+ years"
+    - phd required
+
+location:
+  # Row passes if its Location cell contains any of these substrings (case-insensitive).
+  # Delete "remote" if you want strictly on-site California.
+  include:
+    - california
+    - ", ca"
+    - san francisco
+    - san jose
+    - los angeles
+    - palo alto
+    - mountain view
+    - sunnyvale
+    - santa clara
+    - san diego
+    - irvine
+    - menlo park
+    - cupertino
+    - oakland
+    - berkeley
+    - remote
+  # Additionally reject rows that clearly look non-US.
+  us_only: true
+  reject_if_contains:
+    - india
+    - london
+    - canada
+    - toronto
+    - united kingdom
+    - ", uk"
+    - germany
+    - ireland
+    - singapore
+    - australia
+    - remote - e
+
+# Keep only jobs whose Visa cell says "Sponsor" or "H-1B".
+visa_required: true
+
+# Safety valves.
+per_run_cap: 15        # max Discord pings per run; extras are marked seen with a "+N more" note
+prune_after_days: 21   # forget seen jobs older than this to bound the state file
