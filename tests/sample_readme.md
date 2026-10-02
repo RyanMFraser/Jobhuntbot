@@ -10,3 +10,6 @@ Some intro prose that should be ignored.
 | **Trace3** | DevOps | United States | 9m | ✅ Sponsor | [<img src="images/apply.png" width="80" alt="Apply">](https://job-boards.greenhouse.io/trace3/jobs/596239) |
 | **BigCo** | Senior Data Scientist | San Francisco, CA | 2m | ✅ Sponsor | [<img src="images/apply.png" width="80" alt="Apply">](https://example.com/senior-ds) |
 | **GlobalCorp** | Data Engineer | Bangalore, India | 5m | ✅ Sponsor | [<img src="images/apply.png" width="80" alt="Apply">](https://example.com/india-de) |
+| **Adobe** | 2027 University Graduate - Software Engineer | San Jose, CA | 1h | ✅ Sponsor | [<img src="images/apply.png" width="80" alt="Apply">](https://example.com/adobe-ug) |
+| **Rivian** | Software Engineer II | Palo Alto, CA | 3h | ✅ Sponsor | [<img src="images/apply.png" width="80" alt="Apply">](https://example.com/rivian-ii) |
+| **Snap** | Software Engineer Intern Summer 2027 | Los Angeles, CA | 3h | ✅ Sponsor | [<img src="images/apply.png" width="80" alt="Apply">](https://example.com/snap-intern) |

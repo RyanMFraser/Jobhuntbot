@@ -3,53 +3,90 @@ import os
 import yaml
 
 from src.match import filter_jobs
-from src.parse import parse_readme
+from src.parse import parse_readme, parse_simplify_json, parse_speedyapply
 
-FIXTURE = os.path.join(os.path.dirname(__file__), "sample_readme.md")
-CONFIG = os.path.join(os.path.dirname(__file__), "..", "config.yaml")
+HERE = os.path.dirname(__file__)
+CONFIG = os.path.join(HERE, "..", "config.yaml")
 
 
-def load():
-    with open(FIXTURE, encoding="utf-8") as f:
-        jobs = parse_readme(f.read())
+def _read(name):
+    with open(os.path.join(HERE, name), encoding="utf-8") as f:
+        return f.read()
+
+
+def _config():
     with open(CONFIG, encoding="utf-8") as f:
-        config = yaml.safe_load(f)
-    return jobs, config
+        return yaml.safe_load(f)
 
 
-def matched_titles():
-    jobs, config = load()
-    return {j.company for j in filter_jobs(jobs, config)}
+def zapply_companies():
+    # zapply mixes in experienced roles, so it's run with require_new_grad_keyword.
+    jobs = parse_readme(_read("sample_readme.md"))
+    return {j.company for j in filter_jobs(jobs, _config(), require_new_grad_keyword=True)}
 
 
-def test_data_ml_california_sponsor_passes():
-    companies = matched_titles()
-    # TikTok ML Engineer, San Jose CA, H-1B -> pass
-    assert "TikTok" in companies
-    # Northrop Data Scientist, California, no visa -> rejected (visa_required)
-    # SS&C Data Platform, Kansas City -> rejected (location not CA)
+def curated_companies(parser, fixture):
+    jobs = parser(_read(fixture))
+    return {j.company for j in filter_jobs(jobs, _config(), require_new_grad_keyword=False)}
 
 
-def test_non_data_role_rejected():
-    # Trace3 DevOps is sponsor + US but not a data/ml role.
-    assert "Trace3" not in matched_titles()
+def test_new_grad_swe_in_california_passes():
+    assert "Adobe" in zapply_companies()
+
+
+def test_associate_data_scientist_in_california_passes():
+    # "Associate" is a new-grad keyword; empty visa cell is "unknown", not blocked.
+    assert "Northrop Grumman" in zapply_companies()
+
+
+def test_title_without_new_grad_signal_rejected_for_noisy_source():
+    # TikTok "Machine Learning Engineer..." is CA + ML but says nothing about new grad.
+    assert "TikTok" not in zapply_companies()
+
+
+def test_level_ii_and_interns_rejected():
+    companies = zapply_companies()
+    assert "Rivian" not in companies
+    assert "Snap" not in companies
+
+
+def test_non_swe_role_rejected():
+    assert "Trace3" not in zapply_companies()
 
 
 def test_senior_role_excluded():
-    # BigCo "Senior Data Scientist" is CA + sponsor but excluded by "senior".
-    assert "BigCo" not in matched_titles()
+    assert "BigCo" not in zapply_companies()
 
 
-def test_non_us_rejected_even_if_sponsor():
-    # GlobalCorp Data Engineer, Bangalore India, sponsor -> rejected by location.
-    assert "GlobalCorp" not in matched_titles()
+def test_non_california_rejected():
+    companies = zapply_companies()
+    assert "GlobalCorp" not in companies
+    assert "SS&C Technologies" not in companies
 
 
-def test_no_visa_rejected():
-    # Northrop is a CA data scientist but has an empty visa cell.
-    assert "Northrop Grumman" not in matched_titles()
+def test_speedyapply_curated_list():
+    companies = curated_companies(parse_speedyapply, "sample_speedyapply.md")
+    assert companies == {"Adobe", "SpaceX"}  # Amazon is "II" and in WA
 
 
-def test_out_of_state_data_role_rejected():
-    # SS&C Data Platform is sponsor + data but Kansas City, MO.
-    assert "SS&C Technologies" not in matched_titles()
+def test_simplify_curated_list():
+    companies = curated_companies(parse_simplify_json, "sample_listings.json")
+    # Pinterest: SF new grad SWE. Acme: citizenship required (blocked by visa: not_blocked).
+    # OldCo: inactive. Quora: Texas.
+    assert companies == {"Pinterest"}
+
+
+def test_word_boundaries():
+    from src.parse import Job
+
+    def job(title, location="San Francisco, CA"):
+        return Job("X", title, location, "", "", "https://x")
+
+    cfg = _config()
+    # "staff" inside "Member of Technical Staff" is not a seniority signal.
+    assert filter_jobs([job("Member of Technical Staff - New Grad")], cfg)
+    assert not filter_jobs([job("Staff Software Engineer")], cfg)
+    # "ca" must be a whole word: "Chicago" / "Jamaica" don't count as California.
+    assert not filter_jobs([job("Software Engineer New Grad", "Kingston, Jamaica")], cfg)
+    # "2027" isn't excluded by the "2" (level II) rule.
+    assert filter_jobs([job("Software Engineer, 2027 New Grad")], cfg)

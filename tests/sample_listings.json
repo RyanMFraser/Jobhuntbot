@@ -1,0 +1,14 @@
+[
+  {"company_name": "Pinterest", "title": "University Grad Software Engineer", "locations": ["SF", "Remote in USA"],
+   "url": "https://example.com/pinterest-swe", "active": true, "is_visible": true, "date_posted": 1790812800,
+   "sponsorship": "Other"},
+  {"company_name": "Acme Defense", "title": "Software Engineer I", "locations": ["San Diego, CA"],
+   "url": "https://example.com/acme", "active": true, "is_visible": true, "date_posted": 1790812800,
+   "sponsorship": "U.S. Citizenship is Required"},
+  {"company_name": "OldCo", "title": "ML Engineer New Grad", "locations": ["Palo Alto, CA"],
+   "url": "https://example.com/closed", "active": false, "is_visible": true, "date_posted": 1790812800,
+   "sponsorship": "Offers Sponsorship"},
+  {"company_name": "Quora", "title": "New Grad: Software Engineer", "locations": ["Austin, TX"],
+   "url": "https://example.com/quora", "active": true, "is_visible": true, "date_posted": 1790812800,
+   "sponsorship": "Offers Sponsorship"}
+]

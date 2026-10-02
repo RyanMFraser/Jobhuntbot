@@ -1,69 +1,209 @@
 # Jobhuntbot matching config. Edit freely and push — the next run picks it up.
-source_readme: https://raw.githubusercontent.com/zapplyjobs/New-Grad-Jobs-2027/main/README.md
+#
+# Goal: NEW GRAD software / AI / ML engineering roles in California only.
+
+# Every source is fetched each run; jobs found in several sources are only pinged once.
+#   format: zapply | speedyapply | simplify
+#   require_new_grad_keyword: the title itself must say new grad / early career / etc.
+#     (on for sources that mix in experienced roles; off for curated new-grad-only lists)
+sources:
+  - name: SimplifyJobs
+    format: simplify
+    url: https://raw.githubusercontent.com/SimplifyJobs/New-Grad-Positions/dev/.github/scripts/listings.json
+    require_new_grad_keyword: false
+  - name: speedyapply
+    format: speedyapply
+    url: https://raw.githubusercontent.com/speedyapply/2027-SWE-College-Jobs/main/NEW_GRAD_USA.md
+    require_new_grad_keyword: false
+  - name: vanshb03
+    format: simplify
+    url: https://raw.githubusercontent.com/vanshb03/New-Grad-2027/dev/.github/scripts/listings.json
+    require_new_grad_keyword: false
+  - name: zapply
+    format: zapply
+    url: https://raw.githubusercontent.com/zapplyjobs/New-Grad-Jobs-2027/main/README.md
+    require_new_grad_keyword: true
 
 roles:
-  # A job's title must contain at least one `include` keyword (case-insensitive)...
+  # A job's title must contain at least one `include` keyword (whole words, case-insensitive)...
   include:
-    - data scientist
-    - data engineer
+    - software
+    - swe
+    - sde
+    - developer
+    - programmer
+    - full stack
+    - full-stack
+    - fullstack
+    - backend
+    - back end
+    - back-end
+    - frontend
+    - front end
+    - front-end
+    - mobile engineer
+    - ios engineer
+    - android engineer
+    - forward deployed
+    - platform engineer
+    - infrastructure engineer
     - machine learning
-    - ml engineer
-    - ai engineer
+    - ml
+    - ai
+    - ai/ml
+    - genai
+    - llm
+    - deep learning
+    - computer vision
+    - nlp
     - applied scientist
-    - research scientist
-    - data analyst
-    - analytics
-    - "data platform"
-  # ...and must NOT contain any of these (weeds out senior/lead roles new grads can't take).
+    - research engineer
+    - ai researcher
+    - data engineer
+    - data scientist
+    - amts
+    - member of technical staff
+  # ...and must NOT contain any of these.
   exclude:
     - senior
+    - sr
     - staff
     - principal
     - lead
     - manager
     - director
-    - "vp "
-    - "10+ years"
-    - phd required
+    - head of
+    - vp
+    - architect
+    - hardware
+    - analog
+    - asic
+    - fpga
+    - rf
+    - mechanical
+    - sales
+    - recruiter
+
+new_grad:
+  # Titles with any of these are never new-grad roles.
+  exclude:
+    - intern
+    - internship
+    - interns
+    - co-op
+    - coop
+    - apprentice
+    - experienced
+    - mid-level
+    - mid level
+    - ii
+    - iii
+    - iv
+    - "2"
+    - level 4
+    - level 5
+    - l4
+    - l5
+    - phd
+    - postdoc
+    - postdoctoral
+  # For sources with require_new_grad_keyword: true, the title must contain one of these.
+  keywords:
+    - new grad
+    - new graduate
+    - new college grad
+    - new college graduate
+    - college grad
+    - college graduate
+    - university grad
+    - university graduate
+    - graduate
+    - grad
+    - early career
+    - entry level
+    - entry-level
+    - junior
+    - jr
+    - associate
+    - engineer i
+    - engineer 1
+    - developer i
+    - developer 1
+    - level 1
+    - level 3
+    - amts
+    - campus
+    - emerging talent
+    - residency
+    - rotational
+    - "2026"
+    - "2027"
 
 location:
-  # Row passes if its Location cell contains any of these substrings (case-insensitive).
-  # Delete "remote" if you want strictly on-site California.
+  # Job passes if its location contains any of these (whole words, case-insensitive).
   include:
     - california
-    - ", ca"
+    - ca
+    - sf
+    - bay area
+    - silicon valley
     - san francisco
+    - south san francisco
     - san jose
-    - los angeles
+    - san mateo
+    - san carlos
+    - redwood city
+    - foster city
+    - burlingame
     - palo alto
+    - menlo park
     - mountain view
     - sunnyvale
     - santa clara
-    - san diego
-    - irvine
-    - menlo park
     - cupertino
+    - milpitas
+    - fremont
     - oakland
     - berkeley
-    - remote
-  # Additionally reject rows that clearly look non-US.
-  us_only: true
+    - emeryville
+    - pleasanton
+    - san ramon
+    - sacramento
+    - los angeles
+    - santa monica
+    - culver city
+    - el segundo
+    - playa vista
+    - burbank
+    - pasadena
+    - irvine
+    - costa mesa
+    - newport beach
+    - san diego
+    - carlsbad
+    - santa barbara
+    - hawthorne
+    - long beach
+  # Reject if the location contains any of these substrings (e.g. multi-country rows).
   reject_if_contains:
     - india
     - london
     - canada
     - toronto
+    - vancouver
     - united kingdom
-    - ", uk"
     - germany
     - ireland
     - singapore
     - australia
-    - remote - e
 
-# Keep only jobs whose Visa cell says "Sponsor" or "H-1B".
-visa_required: true
+# Visa filter:
+#   any          — don't filter on sponsorship
+#   not_blocked  — drop jobs that explicitly say no sponsorship / US citizens only (unknown passes)
+#   sponsor_only — only jobs explicitly marked as sponsoring
+visa: not_blocked
 
 # Safety valves.
+max_age_days: 3        # only ping jobs posted within this many days (unknown dates still ping)
 per_run_cap: 15        # max Discord pings per run; extras are marked seen with a "+N more" note
-prune_after_days: 21   # forget seen jobs older than this to bound the state file
+prune_after_days: 60   # forget seen jobs older than this to bound the state file

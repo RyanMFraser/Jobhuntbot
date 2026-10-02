@@ -1,15 +1,21 @@
 """Load, update, and prune the committed dedup store (state/seen.json).
 
-Format: { "<apply_url>": "<iso8601 first_seen>" }
+Format: { "<key>": "<iso8601 first_seen>" }
+
+Each job is stored under two keys: its apply URL, and "ct:<company>|<title>" so the
+same posting listed by several sources (with different URLs) only pings once.
 """
 
 from __future__ import annotations
 
 import json
 import os
+import re
 from datetime import datetime, timedelta, timezone
 
 DEFAULT_PATH = os.path.join("state", "seen.json")
+
+_NON_ALNUM = re.compile(r"[^a-z0-9]+")
 
 
 def load(path: str = DEFAULT_PATH) -> dict[str, str]:
@@ -27,10 +33,24 @@ def is_empty(seen: dict[str, str]) -> bool:
     return len(seen) == 0
 
 
-def mark_seen(seen: dict[str, str], urls: list[str]) -> None:
+def _norm(s: str) -> str:
+    return _NON_ALNUM.sub(" ", s.casefold()).strip()
+
+
+def job_keys(job) -> list[str]:
+    """Dedup keys for a Job: apply URL plus normalized company+title."""
+    return [job.url, f"ct:{_norm(job.company)}|{_norm(job.title)}"]
+
+
+def is_seen(seen: dict[str, str], job) -> bool:
+    return any(k in seen for k in job_keys(job))
+
+
+def mark_seen(seen: dict[str, str], jobs: list) -> None:
     now = datetime.now(timezone.utc).isoformat()
-    for url in urls:
-        seen.setdefault(url, now)
+    for job in jobs:
+        for key in job_keys(job):
+            seen.setdefault(key, now)
 
 
 def prune(seen: dict[str, str], older_than_days: int) -> dict[str, str]:

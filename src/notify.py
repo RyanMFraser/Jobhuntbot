@@ -1,7 +1,7 @@
 """Post matched jobs to Discord via an Incoming Webhook.
 
 Discord allows up to 10 embeds per message, so we batch. Each job becomes one
-embed with company, location, and visa status; the title links to the apply URL.
+embed with company, location, posted time, visa status, and source; the title links to the apply URL.
 """
 
 from __future__ import annotations
@@ -19,19 +19,24 @@ _COLOR = 0x2ECC71  # green
 def _embed(job: Job) -> dict:
     fields = [
         {"name": "Company", "value": job.company or "—", "inline": True},
-        {"name": "Location", "value": job.location or "—", "inline": True},
+        {"name": "Location", "value": (job.location or "—")[:1024], "inline": True},
     ]
+    if job.posted:
+        fields.append({"name": "Posted", "value": job.posted, "inline": True})
     if job.visa:
         fields.append({"name": "Visa", "value": job.visa, "inline": True})
     title = job.title or "New role"
     if job.title_truncated:
         title += " (title truncated at source)"
-    return {
+    embed = {
         "title": title[:256],
         "url": job.url,
         "color": _COLOR,
         "fields": fields,
     }
+    if job.source:
+        embed["footer"] = {"text": f"via {job.source}"}
+    return embed
 
 
 def _post(webhook_url: str, payload: dict) -> None:

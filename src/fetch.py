@@ -1,4 +1,4 @@
-"""Download the source repo's raw README markdown."""
+"""Download source files (raw README markdown or listings JSON)."""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ import requests
 _HEADERS = {"User-Agent": "Jobhuntbot/1.0 (+https://github.com/)"}
 
 
-def fetch_readme(url: str, retries: int = 3, timeout: int = 30) -> str:
-    """GET the raw README, retrying transient failures with backoff."""
+def fetch_text(url: str, retries: int = 3, timeout: int = 30) -> str:
+    """GET a raw text file, retrying transient failures with backoff."""
     last_err: Exception | None = None
     for attempt in range(retries):
         try:
@@ -21,4 +21,4 @@ def fetch_readme(url: str, retries: int = 3, timeout: int = 30) -> str:
             last_err = err
             if attempt < retries - 1:
                 time.sleep(2 ** attempt)
-    raise RuntimeError(f"Failed to fetch README from {url}: {last_err}")
+    raise RuntimeError(f"Failed to fetch {url}: {last_err}")
